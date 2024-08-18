@@ -1,0 +1,126 @@
+{
+  "name": "frontend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "generators": {},
+  "sourceRoot": "apps/frontend/src",
+  "prefix": "app",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:application",
+      "options": {
+        "outputPath": "dist/apps/frontend",
+        "index": "apps/frontend/src/index.html",
+        "browser": "apps/frontend/src/main.ts",
+        "polyfills": [
+          "zone.js"
+        ],
+        "tsConfig": "apps/frontend/tsconfig.app.json",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/frontend/public"
+          }
+        ],
+        "styles": [
+          "apps/frontend/src/styles.css"
+        ],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kB",
+              "maximumError": "1MB"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kB",
+              "maximumError": "4kB"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "local": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/frontend/src/environments/environment.ts",
+              "with": "apps/frontend/src/environments/environment.local.ts"
+            }
+          ]
+        }
+      },
+      "defaultConfiguration": "production",
+      "dependsOn": [
+        "generateApiServices",
+        "^build"
+      ],
+      "inputs": [
+        {
+          "dependentTasksOutputFiles": "**/*"
+        },
+        "production",
+        "^production"
+      ]
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "frontend:build:production"
+        },
+        "local": {
+          "buildTarget": "frontend:build:local"
+        }
+      },
+      "defaultConfiguration": "local",
+      "dependsOn": [
+        "generateApiServices"
+      ]
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n"
+    },
+    "test": {
+      "executor": "@angular-devkit/build-angular:jest",
+      "options": {
+        "polyfills": [
+          "zone.js",
+          "zone.js/testing"
+        ],
+        "tsConfig": "apps/frontend/tsconfig.spec.json"
+      },
+      "dependsOn": [
+        "generateApiServices"
+      ],
+      "inputs": [
+        {
+          "dependentTasksOutputFiles": "**/*"
+        },
+        "default",
+        "^production",
+        "{workspaceRoot}/jest.conf.js"
+      ]
+    },
+    "generateApiServices": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/openapi.json" },
+        "!{projectRoot}/**/*"
+      ],
+      "outputs": ["{projectRoot}/src/app/generated/openapi"],
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx openapi-generator-cli generate -i apps/backend/build/openapi.json -g typescript-angular -o apps/frontend/src/app/generated/openapi --additional-properties fileNaming=kebab-case,withInterfaces=true --generate-alias-as-model"
+      },
+      "dependsOn": [
+        "backend:generateApiSpec"
+      ]
+    }
+  }
+}

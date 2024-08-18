@@ -1,0 +1,71 @@
+image: code.andrena.de:5050/marcosieben/nx-article-demo:latest  # Dein benutzerdefiniertes Docker-Image
+
+stages:
+  - prepare
+  - test
+  - build
+  - deploy
+
+variables:
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  FF_USE_FASTZIP: "true"
+  CACHE_COMPRESSION_LEVEL: "fastest"
+  NXCACHE_S3_READ_ONLY: false
+
+default:
+  cache: &global_cache
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+      - .gradle/wrapper/
+      - .gradle/caches/
+
+install_dependencies:
+  stage: prepare
+  script:
+    - npm ci
+    - npx nx run-many --target=installDependencies
+  cache:
+    <<: *global_cache
+    policy: pull-push
+
+test:
+  stage: test
+  dependencies:
+    - install_dependencies
+  script:
+    - npx nx run-many --target=test
+  cache:
+    <<: *global_cache
+    policy: pull
+
+build:
+  stage: build
+  needs:
+    - install_dependencies
+  script:
+    - npx nx run-many --target=build
+  artifacts:
+    paths:
+      - apps/backend/build/libs
+      - dist/apps/frontend/browser
+  cache:
+    <<: *global_cache
+    policy: pull
+
+deploy_backend:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - echo "Deploying BE - $(du -sh apps/backend/build/libs | cut -f1)"
+  cache: []
+
+deploy_frontend:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - echo "Deploying FE - $(du -sh dist/apps/frontend/browser | cut -f1)"
+  cache: []
+

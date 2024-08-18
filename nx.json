@@ -1,0 +1,69 @@
+{
+  "defaultBase": "main",
+  "namedInputs": {
+    "sharedGlobals": [],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
+    "production": [
+      "default",
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/**/*.spec.[jt]s",
+      "!{projectRoot}/jest.conf.js"
+    ]
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ],
+      "cache": true
+    },
+    "test": {
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/jest.conf.js"
+      ],
+      "cache": true
+    },
+    "install": {
+      "cache": true
+    }
+  },
+  "plugins": [
+    {
+      "plugin": "@nxrocks/nx-spring-boot",
+      "options": {
+        "buildTargetName": "build",
+        "installTargetName": "install",
+        "testTargetName": "test",
+        "cleanTargetName": "clean",
+        "formatTargetName": "format",
+        "applyFormatTargetName": "apply-format",
+        "checkFormatTargetName": "check-format",
+        "runTargetName": "run",
+        "serveTargetName": "serve",
+        "buildImageTargetName": "build-image",
+        "buildInfoTargetName": "build-info"
+      }
+    }
+  ],
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "@pellegrims/nx-remotecache-s3",
+      "options": {
+        "cacheableOperations": ["build", "test", "generateApiServices", "generateApiSpec"],
+        "bucket": "andrena-nx-cache-msieben",
+        "prefix": "javamagdemo/",
+        "region": "eu-central-1",
+        "readOnly": true
+      }
+    }
+  }
+}

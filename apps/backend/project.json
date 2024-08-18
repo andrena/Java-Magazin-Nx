@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/backend/src",
+  "tags": [],
+  "targets": {
+    "generateApiSpec": {
+      "inputs": ["{projectRoot}/src/main/java/de/andrena/nx/backend/api/**/*"],
+      "outputs": ["{projectRoot}/build/openapi.json"],
+      "cache": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/backend",
+        "command": "./gradlew generateOpenApiDocs"
+      }
+    },
+    "installDependencies": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/backend",
+        "command": "./gradlew buildEnvironment"
+      }
+    }
+  }
+}
